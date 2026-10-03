@@ -92,6 +92,9 @@ extern uint64 sys_fstat(void);
 extern uint64 sys_chdir(void);
 extern uint64 sys_dup(void);
 extern uint64 sys_getpid(void);
+extern uint64 sys_activecount(void);
+extern uint64 sys_lineage(void);
+extern uint64 sys_getprocsize(void);
 extern uint64 sys_sbrk(void);
 extern uint64 sys_pause(void);
 extern uint64 sys_uptime(void);
@@ -103,7 +106,9 @@ extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
 extern uint64 sys_sync(void);
-
+extern uint64 sys_getuptime(void);
+extern uint64 sys_familyheadcount(void);
+extern uint64 sys_getprocess(void);
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
@@ -119,6 +124,9 @@ static uint64 (*syscalls[])(void) = {
   [SYS_chdir]   = sys_chdir,
   [SYS_dup]     = sys_dup,
   [SYS_getpid]  = sys_getpid,
+  [SYS_activecount] = sys_activecount,
+  [SYS_lineage] = sys_lineage,
+  [SYS_getprocsize] = sys_getprocsize,
   [SYS_sbrk]    = sys_sbrk,
   [SYS_pause]   = sys_pause,
   [SYS_uptime]  = sys_uptime,
@@ -130,6 +138,9 @@ static uint64 (*syscalls[])(void) = {
   [SYS_mkdir]   = sys_mkdir,
   [SYS_close]   = sys_close,
   [SYS_sync]    = sys_sync,
+  [SYS_getuptime] = sys_getuptime,
+  [SYS_familyheadcount]=sys_familyheadcount,
+  [SYS_getprocess]= sys_getprocess,
   // clang-format on
 };
 

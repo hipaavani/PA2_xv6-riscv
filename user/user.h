@@ -1,7 +1,7 @@
 #define SBRK_ERROR ((char *)-1)
 
 struct stat;
-
+struct pinfo;
 // system calls
 int fork(void);
 int exit(int) __attribute__((noreturn));
@@ -21,11 +21,16 @@ int mkdir(const char *);
 int chdir(const char *);
 int dup(int);
 int getpid(void);
+int activecount(void);
+int getprocsize(int);
+int lineage(int);
 char *sys_sbrk(int, int);
 int pause(int);
 int uptime(void);
 int sync(void);
-
+int getuptime(void);
+int familyheadcount(int);
+int getprocess(struct pinfo*);
 // ulib.c
 int stat(const char *, struct stat *);
 char *strcpy(char *, const char *);

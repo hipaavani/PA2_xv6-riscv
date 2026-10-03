@@ -133,6 +133,9 @@ UPROGS=\
 	$U/_cat\
 	$U/_echo\
 	$U/_forktest\
+	$U/_testactive\
+	$U/_testlineage\
+	$U/_testsize\
 	$U/_grep\
 	$U/_init\
 	$U/_kill\
@@ -150,7 +153,9 @@ UPROGS=\
 	$U/_forphan\
 	$U/_dorphan\
 	$U/_sync\
-
+	$U/_test\
+	$U/_process_test\
+	$U/_pstree
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
 

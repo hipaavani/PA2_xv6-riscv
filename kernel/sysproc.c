@@ -6,7 +6,11 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
-
+#include "pstree_bonus.h"
+extern  uint ticks;
+extern struct spinlock tickslock;
+extern struct proc proc[NPROC];
+struct pinfo table[NPROC];
 uint64
 sys_exit(void)
 {
@@ -109,4 +113,174 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64
+sys_getuptime(void)
+{
+   uint xticks;
+
+   acquire(&tickslock);
+   xticks=ticks;
+   release(&tickslock);
+   return xticks;
+}
+
+uint64
+sys_activecount(void)
+{
+  int count = 0;
+  struct proc *p;
+
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+
+    if (p->state != UNUSED)
+      count++;
+
+    release(&p->lock);
+  }
+
+  return count;
+}
+uint64
+sys_lineage(void)
+{
+  int pid;
+  argint(0, &pid);
+
+  struct proc *p;
+  int count = 0;
+  int found = 0;
+  struct proc *current;
+
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+
+    if (p->pid == pid && p->state != UNUSED) {
+      found = 1;
+      current = p;
+      release(&p->lock);
+      break;
+    }
+
+    release(&p->lock);
+  }
+
+  if (!found)
+    return -1;
+
+  while (current != 0) {
+    char name[16];
+    int current_pid;
+    struct proc *parent;
+    
+    acquire(&current->lock);
+    
+    if (current->state == UNUSED) {
+      release(&current->lock);
+      break;
+    }
+    
+    current_pid = current->pid;
+    parent = current->parent;
+    safestrcpy(name, current->name, sizeof(name));
+    
+    release(&current->lock);
+    
+    printk("PID %d: %s\n", current_pid, name);
+    count++;
+    
+    if (current_pid == 1)
+    break;
+  
+    current = parent;
+}
+
+return count;
+}
+
+uint64
+sys_getprocsize(void)
+{
+  int pid;
+  argint(0, &pid);
+
+  struct proc *p;
+
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+
+    if (p->pid == pid && p->state != UNUSED) {
+      uint64 size = p->sz;
+      release(&p->lock);
+      return size;
+    }
+
+    release(&p->lock);
+  }
+
+  return -1;
+}
+
+uint64
+sys_familyheadcount(void)
+{ 
+  int pid;
+  struct proc *p;
+  int count=0;
+
+  argint(0, &pid);
+
+
+  for(p=proc; p<&proc[NPROC]; p++){
+   acquire(&p->lock);
+  if(p->parent && p->parent->pid ==pid && p->state !=UNUSED && p->state!= ZOMBIE)
+{
+   count++;}
+  
+release(&p->lock);
+  }
+  return count;
+}
+
+uint64
+sys_getprocess(void){
+ 
+uint64 addr;
+struct proc *p;
+
+argaddr(0, &addr);
+
+struct pinfo table[NPROC];
+int ind=0;
+
+for(p=proc; p<&proc[NPROC]; p++)
+{
+	acquire(&p->lock);
+	if(p->state !=UNUSED){
+		table[ind].pid=p->pid;
+		table[ind].sz= p->sz;
+
+		if(p->parent){
+			table[ind].ppid= p->parent->pid;}
+		else{
+			table[ind].ppid=0;}
+		
+		safestrcpy(table[ind].name, p->name, 16);
+
+	ind++;
+}
+	release(&p->lock);
+
+}
+if(copyout(myproc()->pagetable,
+		myproc()->sz,
+		addr,
+		(char *)table,
+		sizeof(table))<0)
+{
+	return -1;}
+
+return ind;
 }
